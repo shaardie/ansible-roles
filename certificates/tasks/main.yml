@@ -1,0 +1,22 @@
+---
+
+- name: Install Certbot
+  package:
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+
+- name: Create Cloudflare Config
+  copy:
+    content: |
+        dns_cloudflare_email = {{ dns_cloudflare_email }}
+        dns_cloudflare_api_key = {{ dns_cloudflare_api_key }}
+    dest: /etc/letsencrypt/dnscloudflare.ini
+    mode: 0600
+    force: true
+
+- name: Generate Certificates
+  command: certbot certonly --domain {{ item }} --dns-cloudflare --dns-cloudflare-credentials=/etc/letsencrypt/dnscloudflare.ini --non-interactive --agree-tos --email {{ dns_cloudflare_email }}
+  args:
+    creates: /etc/letsencrypt/live/{{ item }}/cert.pem
+  with_items: '{{ domains }}'

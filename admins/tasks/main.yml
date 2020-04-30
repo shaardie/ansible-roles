@@ -1,0 +1,35 @@
+---
+
+- name: install epel
+  package:
+    name: epel-release
+  when: ansible_os_family == "RedHat"
+
+- name: install base tools
+  package:
+    name:
+      - vim
+      - zsh
+      - htop
+      - iotop
+
+- name: create admin users
+  user:
+    name: '{{ item.user }}'
+    groups: '{% if ansible_os_family == "RedHat"%}wheel{% else %}sudo{% endif %}'
+    append: true
+  loop: '{{ admins }}'
+
+- name: set up admin authorized keys
+  authorized_key:
+    user: '{{ item.user }}'
+    state: present
+    key: "{{ item.key }}"
+  loop: '{{ admins }}'
+
+- name: allow to sudo without a password
+  copy:
+    dest: /etc/sudoers.d/password-less-sudo
+    mode: 0600
+    content: '%{% if ansible_os_family == "RedHat"%}wheel{% else %}sudo{% endif %} ALL=(ALL) NOPASSWD: ALL'
+    force: true

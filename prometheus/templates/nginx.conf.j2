@@ -1,0 +1,17 @@
+server {
+    listen 80;
+    server_name {{ prometheus_domain }};
+    location / {
+        return 301 https://{{ prometheus_domain }};
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name {{ prometheus_domain }};
+    ssl_certificate /etc/letsencrypt/live/{{ prometheus_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ prometheus_domain }}/privkey.pem;
+    location / {
+        proxy_pass http://127.0.0.1:9090;
+    }
+}

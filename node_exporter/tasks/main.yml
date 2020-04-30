@@ -1,0 +1,50 @@
+---
+
+- name: Add prometheus user
+  user:
+    name: prometheus
+    system: true
+
+- name: Extract Node Exporter Sources
+  unarchive:
+    remote_src: true
+    dest: /src/
+    src: '{{ node_exporter_download_path }}'
+    creates: '{{ node_exporter_src_path }}'
+
+- name: Copy Binary
+  copy:
+    remote_src: true
+    src: '{{ node_exporter_src_path }}/node_exporter'
+    dest: /usr/bin/node_exporter
+    mode: 0755
+  notify: Restart Node Exporter
+
+- name: Copy service file
+  copy:
+    src: node_exporter.service
+    dest: /etc/systemd/system/node_exporter.service
+  notify:
+    - Reload Systemd
+    - Restart Node Exporter
+
+- name: Enable and start Node Exporter
+  service:
+    name: node_exporter
+    state: started
+    enabled: true
+
+- name: Create htpasswd
+  htpasswd:
+    path: /etc/nginx/node_exporter.htpasswd
+    name: '{{ node_exporter_auth_user }}'
+    password: '{{ node_exporter_auth_password }}'
+  notify: Reload nginx
+  when: node_exporter_auth_user is defined and node_exporter_auth_password is defined
+
+- name: Serve Node Exporter via nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/{{ node_exporter_domain }}.conf
+  notify: Reload nginx
+  when: node_exporter_domain is defined

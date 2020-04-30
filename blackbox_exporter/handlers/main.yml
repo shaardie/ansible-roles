@@ -1,0 +1,15 @@
+---
+
+- name: Restart Blackbox Exporter
+  service:
+    name: blackbox_exporter
+    state: restarted
+
+- name: Reload Systemd
+  systemd:
+    daemon_reload: true
+
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded

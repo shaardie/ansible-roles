@@ -1,0 +1,12 @@
+[Unit]
+Description=Node Exporter
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Restart=always
+ExecStart=/usr/bin/node_exporter --web.listen-address=127.0.0.1:9100
+
+[Install]
+WantedBy=multi-user.target

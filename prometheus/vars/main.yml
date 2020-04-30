@@ -1,0 +1,11 @@
+---
+
+prometheus_architectures:
+  i386: '386'
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armv7'
+  armv6l: 'armv6'
+
+prometheus_download_path: https://github.com/prometheus/prometheus/releases/download/v2.17.2/prometheus-2.17.2.linux-{{ prometheus_architectures[ansible_architecture] }}.tar.gz
+prometheus_src_path: /src/prometheus-2.17.2.linux-{{ prometheus_architectures[ansible_architecture] }}

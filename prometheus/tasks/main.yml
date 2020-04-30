@@ -1,0 +1,80 @@
+---
+
+- name: Add prometheus user
+  user:
+    name: prometheus
+    system: true
+
+- name: Make directories present
+  file:
+    dest: '{{ item }}'
+    owner: prometheus
+    group: prometheus
+    state: directory
+  with_items:
+    - /etc/prometheus
+    - /var/lib/prometheus
+
+- name: Make /src directory present
+  file:
+    dest: /src
+    state: directory
+
+- name: Extract Promehteus Sources
+  unarchive:
+    remote_src: true
+    dest: /src/
+    src: '{{ prometheus_download_path }}'
+    creates: '{{ prometheus_src_path }}'
+
+- name: Copy Binaries
+  copy:
+    remote_src: true
+    src: '{{ prometheus_src_path }}/{{ item }}'
+    dest: /usr/bin/{{ item }}
+    mode: 0755
+  with_items:
+    - tsdb
+    - prometheus
+    - promtool
+  notify: Restart Prometheus
+
+- name: Copy console to config directory
+  copy:
+    remote_src: true
+    src: '{{ prometheus_src_path }}/{{ item }}'
+    dest: /etc/prometheus/{{ item }}
+    owner: prometheus
+    group: prometheus
+  with_items:
+    - consoles
+    - console_libraries
+  notify: Restart Prometheus
+
+- name: Copy service file
+  copy:
+    src: prometheus.service
+    dest: /etc/systemd/system/prometheus.service
+  notify: Restart Prometheus
+
+- name: Copy default config
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: 0600
+  notify: Restart Prometheus
+
+- name: Enable and start Prometheus
+  service:
+    name: prometheus
+    state: started
+    enabled: true
+
+- name: Serve prometheus via nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/{{ prometheus_domain }}.conf
+  notify: Reload nginx
+  when: prometheus_domain is defined

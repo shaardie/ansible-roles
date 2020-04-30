@@ -1,0 +1,88 @@
+---
+
+- name: Install software
+  package:
+    name:
+      - dnsmasq
+      - golang
+      - git
+      - python3-passlib
+      - python-passlib
+
+- name: Copy dnsmasq config
+  copy:
+    src: dnsmasq.conf
+    dest: /etc/dnsmasq.conf
+    force: true
+  notify: Restart dnsmasq
+
+- name: Copy hosts file
+  copy:
+    src: hosts
+    dest: /etc/hosts
+    force: true
+  notify: Restart dnsmasq
+
+- name: Enable dnsmasq
+  service:
+    name: dnsmasq
+    state: started
+    enabled: true
+
+- name: Make /src directory present
+  file:
+    dest: /src
+    state: directory
+
+- name: Get dnsmasq exporter Sources
+  git:
+    depth: 1
+    repo: https://github.com/google/dnsmasq_exporter
+    dest: /src/dnsmasq_exporter
+    version: v0.2.0
+
+- name: Build dnsmasq exporter
+  command:
+  args:
+    chdir: /src/dnsmasq_exporter
+    cmd: go build
+
+- name: Link dnsmasq exporter binary
+  file:
+    state: link
+    dest: /usr/bin/dnsmasq_exporter
+    src: /src/dnsmasq_exporter/dnsmasq_exporter
+  notify: Restart dnsmasq exporter
+
+- name: Link dnsmasq exporter service file
+  file:
+    state: link
+    dest: /etc/systemd/system/dnsmasq_exporter.service
+    src: /src/dnsmasq_exporter/dnsmasq_exporter.service
+  notify: Reload Systemd
+
+- name: Add prometheus user
+  user:
+    name: prometheus
+    system: true
+
+- name: Enable and start dnsmasq exporter service
+  service:
+    name: dnsmasq_exporter
+    enabled: true
+    state: started
+
+- name: Create htpasswd
+  htpasswd:
+    path: /etc/nginx/dnsmasq.htpasswd
+    name: '{{ dnsmasq_auth_user }}'
+    password: '{{ dnsmasq_auth_password }}'
+  notify: Reload nginx
+  when: dnsmasq_auth_user is defined and dnsmasq_auth_password is defined
+
+- name: Serve dnsmsasq exporter via nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/{{ dnsmasq_domain }}.conf
+  notify: Reload nginx
+  when: dnsmasq_domain is defined

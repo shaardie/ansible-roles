@@ -1,0 +1,11 @@
+---
+
+node_exporter_architectures:
+  i386: '386'
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armv7'
+  armv6l: 'armv6'
+
+node_exporter_download_path: https://github.com/prometheus/blackbox_exporter/releases/download/v0.16.0/blackbox_exporter-0.16.0.linux-{{ prometheus_architectures[ansible_architecture] }}.tar.gz
+node_exporter_src_path: /src/blackbox_exporter-0.16.0.linux-{{ prometheus_architectures[ansible_architecture] }}
