@@ -57,9 +57,9 @@
     dest: /etc/systemd/system/prometheus.service
   notify: Restart Prometheus
 
-- name: Copy default config
+- name: Copy config
   template:
-    src: prometheus.yml.j2
+    src: '{{ prometheus_config }}'
     dest: /etc/prometheus/prometheus.yml
     owner: prometheus
     group: prometheus

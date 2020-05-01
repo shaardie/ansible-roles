@@ -1,0 +1,12 @@
+[Unit]
+Description=Blackbox Exporter
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Restart=always
+ExecStart=/usr/bin/blackbox_exporter --web.listen-address=127.0.0.1:9115 --config.file=/etc/prometheus/blackbox.yml
+
+[Install]
+WantedBy=multi-user.target
