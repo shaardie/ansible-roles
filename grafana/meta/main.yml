@@ -1,0 +1,8 @@
+---
+
+dependencies:
+  - role: nginx
+  - role: certificates
+    vars:
+      domains:
+        - '{{ grafana_domain }}'
