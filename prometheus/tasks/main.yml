@@ -66,6 +66,16 @@
     mode: 0600
   notify: Restart Prometheus
 
+- name: Copy rules
+  template:
+    src: '{{ prometheus_rules_config }}'
+    dest: /etc/prometheus/rules.yml
+    owner: prometheus
+    group: prometheus
+    mode: 0600
+  notify: Restart Prometheus
+  when: prometheus_rules_config is defined
+
 - name: Enable and start Prometheus
   service:
     name: prometheus
