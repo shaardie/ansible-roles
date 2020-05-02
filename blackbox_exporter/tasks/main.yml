@@ -32,12 +32,14 @@
     remote_src: true
     src: '{{ blackbox_exporter_src_path }}/blackbox.yml'
     dest: /etc/prometheus/blackbox.yml
+  notify: Restart Blackbox Exporter
   when: blackbox_exporter_config is not defined
 
 - name: Copy Config File
   template:
     src: '{{ blackbox_exporter_config }}'
     dest: /etc/prometheus/blackbox.yml
+  notify: Restart Blackbox Exporter
   when: blackbox_exporter_config is defined
 
 - name: Copy service file
