@@ -11,6 +11,12 @@ server {
     server_name {{ prometheus_domain }};
     ssl_certificate /etc/letsencrypt/live/{{ prometheus_domain }}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/{{ prometheus_domain }}/privkey.pem;
+
+    {% if prometheus_auth_user is defined and prometheus_auth_password is defined %}
+        auth_basic "restricted";
+        auth_basic_user_file /etc/nginx/prometheus.htpasswd;
+    {%endif %}
+
     location / {
         proxy_pass http://127.0.0.1:9090;
     }

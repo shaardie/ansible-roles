@@ -82,6 +82,22 @@
     state: started
     enabled: true
 
+- name: Create htpasswd
+  htpasswd:
+    path: /etc/nginx/prometheus.htpasswd
+    name: '{{ prometheus_auth_user }}'
+    password: '{{ prometheus_auth_password }}'
+  notify: Reload nginx
+  when: prometheus_auth_user is defined and prometheus_auth_password is defined
+
+- name: Create htpasswd
+  htpasswd:
+    path: /etc/nginx/prometheus.htpasswd
+    name: '{{ prometheus_auth_user }}'
+    password: '{{ prometheus_auth_password }}'
+  notify: Reload nginx
+  when: prometheus_auth_user is defined and prometheus_auth_password is defined
+
 - name: Serve prometheus via nginx
   template:
     src: nginx.conf.j2
